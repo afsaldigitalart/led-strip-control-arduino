@@ -2,6 +2,7 @@ import threading
 import customtkinter as tk
 import colorsys
 import math
+from pystray import Icon, MenuItem as item
 from PIL import Image, ImageTk, ImageDraw, ImageColor
 import serial
 import time
@@ -136,12 +137,13 @@ def rainbowOn():
         if not running_rainbow: 
             running_rainbow = True
             threading.Thread(target=rainbow_effect, daemon=True).start()
-    else: 
-        running_rainbow = False 
-        if selected_color:  
-            send_rgb_to_arduino(selected_color)
-        else:
-            send_rgb_to_arduino((0, 0, 0))
+    else:
+        if is_on: 
+            running_rainbow = False 
+            if selected_color:  
+                send_rgb_to_arduino(selected_color)
+            else:
+                send_rgb_to_arduino((0, 0, 0))
 
 def turnoff():
     send_rgb_to_arduino((0,0,0))
@@ -154,6 +156,21 @@ def turnon():
     newcolor = adjust_brightness(selected_color, slider)
     send_rgb_to_arduino(newcolor)
 
+def restore(icon):
+    root.deiconify()
+    icon.stop()
+
+def quit():
+    root.destroy()
+
+def close():
+    root.withdraw()
+    tray()
+
+def tray():
+    image = Image.open(r"C:\Users\afsal\OneDrive\Desktop\LED\icon.ico")
+    icon = Icon("LED Control", image, menu=(item("Quit",quit),item("Restore",action=restore,default=True)))
+    threading.Thread(target=icon.run, daemon=True).start()
 
 # Main
 root = tk.CTk(fg_color="#252422")
@@ -161,6 +178,8 @@ root.title("Color Selector")
 root.resizable(False, False)
 root.geometry("1129x783")
 root.iconbitmap("icon.ico")
+root.protocol("WM_DELETE_WINDOW", close)
+
 
 xpos =0.71
 color_wheel = create_color_wheel()
