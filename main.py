@@ -2,6 +2,8 @@ import threading
 import customtkinter as tk
 import colorsys
 import math
+import sys
+import os
 import tkinter as tkk
 from customtkinter import CTkImage
 from pystray import Icon, MenuItem as item
@@ -25,7 +27,7 @@ class LEDstrip():
         self.root.title("Color Selector")
         self.root.resizable(False, False)
         self.root.geometry("1129x783")
-        self.root.iconbitmap("icon.ico")
+        self.root.iconbitmap(self.resource_path("icon.ico"))
         self.root.protocol("WM_DELETE_WINDOW", self.close)
         self.UIwidgets()
 
@@ -106,6 +108,15 @@ class LEDstrip():
 
         self.color_wheel_label.bind("<Motion>", self.on_motion)
         self.color_wheel_label.bind("<Button-1>", self.on_click)
+
+
+    def resource_path(self, relative_path):
+        try:
+            base_path = sys._MEIPASS
+        except Exception:
+            base_path = os.path.abspath(".")
+        return os.path.join(base_path, relative_path)
+
 
     def create_color_wheel(self, size=380):
         image = Image.new('RGB', (size, size), color="#252422")
