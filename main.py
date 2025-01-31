@@ -6,6 +6,7 @@ import tkinter as tkk
 from customtkinter import CTkImage
 from pystray import Icon, MenuItem as item
 from PIL import Image, ImageTk, ImageDraw, ImageColor
+import serial.tools.list_ports 
 import serial
 import time
 
@@ -35,8 +36,8 @@ class LEDstrip():
         self.color_wheel_label = tk.CTkLabel(self.root, image=self.color_wheel_photo, text="") 
         self.color_wheel_label.pack(padx=120, pady=10, side="left", anchor="center")
 
-        color_label = tk.CTkLabel(root, text="0 0 0",font=("Arial", 40, "bold"),text_color = "#fffcf2" )
-        color_label.place(relx=self.xpos, rely=0.22, anchor="center")
+        self.color_label = tk.CTkLabel(root, text="0 0 0",font=("Arial", 40, "bold"),text_color = "#fffcf2" )
+        self.color_label.place(relx=self.xpos, rely=0.22, anchor="center")
         
         self.selected_label = tk.CTkLabel(
             self.root,
@@ -153,7 +154,7 @@ class LEDstrip():
             if 0 <= x <= 380 and 0 <= y <= 380:
                 self.is_locked = True  
                 self.selected_color = self.get_color_from_position(x, y)
-                self.color_label.configure(text=str(self.selected_color))
+                self.color_label.configure(text=self.selected_color)
                 bright = self.brightness_slider.get()
                 f = self.adjust_brightness(self.selected_color, bright)
                 self.arduino.send_rgb_to_arduino(f)
@@ -243,7 +244,8 @@ class LEDstrip():
 
 class Arduino():
     def __init__(self):
-        self.arduino = serial.Serial('COM6', 9600)
+        # Port = self.checkPort()
+        self.arduino = serial.Serial(self.checkPort(), 9600)
 
     def send_rgb_to_arduino(self, rgb):
         try:
@@ -254,6 +256,14 @@ class Arduino():
 
         except serial.SerialException:
             print("ERROR")
+
+    def checkPort(self):
+        ports = serial.tools.list_ports.comports()
+        for port in ports:
+            if "Arduino" in port.description:
+                return port.device
+        return False
+
 
 
 if __name__ == "__main__":
