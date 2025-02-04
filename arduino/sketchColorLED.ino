@@ -1,6 +1,6 @@
 #include <EEPROM.h>
-const int redP = 6;
-const int greenP = 10;
+const int redP = 5;
+const int greenP = 11;
 const int blueP = 9;
 void setup() {
   Serial.begin(9600);

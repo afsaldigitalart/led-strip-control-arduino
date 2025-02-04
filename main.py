@@ -4,13 +4,13 @@ import colorsys
 import math
 import sys
 import os
-import tkinter as tkk
-from customtkinter import CTkImage
 from pystray import Icon, MenuItem as item
 from PIL import Image, ImageTk, ImageDraw, ImageColor
 import serial.tools.list_ports 
 import serial
 import time
+import sounddevice as sd
+import numpy as np
 
 """The Sotware is a personal project I did to learn more about Arduino. But eventually I learnt
 the CTKinter module also. It was a great learning experience and I will be adding more features
@@ -24,8 +24,13 @@ class LEDstrip():
         self.xpos = 0.71 #allingment of Labels, Slider and Buttons in X Axis
         self.running_rainbow = False #flag for rainbow mode
         self.is_locked = False #flag for color selection
-        self.selected_color = None # selected color RGB values in tuple
-        self.is_on = True #flag for ON/OFF
+        self.is_on = True
+        self.SAMPLE_RATE = 44100  
+        self.CHUNK_SIZE = 1024 
+        self.BASS_RANGE = (180, 250)
+        self.MIDS_RANGE = (250, 2000)
+        self.HIGHS_RANGE = (2000, 20000)
+        self.output_device = self.get_audio_output_device()
 
         self.arduino = Arduino() 
         self.root.title("Color Selector")
@@ -52,7 +57,7 @@ class LEDstrip():
             font=("Arial", 12),
             text_color="#fffcf2",
             anchor="center")
-        self.selected_label.place(relx=self.xpos, rely=0.26, anchor="center")
+        self.selected_text.place(relx=self.xpos, rely=0.26, anchor="center")
         #For the "Selected Color Text"
         
         self.brightness_slider = tk.CTkSlider(self.root, 
@@ -86,7 +91,18 @@ class LEDstrip():
             progress_color="#eb5e28",
             button_color="#fffcf2",
             command=self.rainbowOn)
-        self.switchR.place(relx=self.xpos, rely=0.57, anchor="center")
+        self.switchR.place(relx=self.xpos, rely=0.54, anchor="center")
+        #Toggle Button for Rainbow Mode
+
+        self.switchP = tk.CTkSwitch(self.root,
+            text="Pulsating Mode",
+            font=("Arial", 20, "bold"),
+            text_color="#fffcf2",
+            button_hover_color="#eb5e28",
+            progress_color="#eb5e28",
+            button_color="#fffcf2",
+            command=self.toggle_pulsating_mode)
+        self.switchP.place(relx=self.xpos, rely=0.62, anchor="center")
         #Toggle Button for Rainbow Mode
 
         self.onoff = tk.CTkButton(
@@ -251,9 +267,7 @@ class LEDstrip():
         self.arduino.send_rgb_to_arduino((0, 0, 0))
 
     def turnon(self):
-        slider = self.brightness_slider.get()
-        if self.selected_color is None:
-            self.selected_color = (0, 0, 0)  
+        slider = self.brightness_slider.get() 
         newcolor = self.adjust_brightness(self.selected_color, slider)
         self.arduino.send_rgb_to_arduino(newcolor)
 
@@ -274,6 +288,62 @@ class LEDstrip():
         image = Image.open(r"C:\Users\afsal\OneDrive\Desktop\LED\icon.ico")
         icon = Icon("LED Control", image, menu=(item("Restore", action=self.restore, default=True), item("Quit", self.quit)))
         threading.Thread(target=icon.run, daemon=True).start()
+
+    def toggle_pulsating_mode(self):
+        if self.switchP.get():
+            self.stream = self.start_stream(self.output_device)
+            self.stream.start()  # Start the stream
+        else:
+            self.stream.stop()  # Stop the stream
+            self.stream.close()
+
+    def get_audio_output_device(self):
+        devices = sd.query_devices()
+        for i, device in enumerate(devices):
+            if "Bluetooth" in device["name"]:  # Look for Bluetooth device
+                print(f"Bluetooth device found: {device['name']}")
+   
+                return i  # Return Bluetooth device index
+        print("Using default speakers")
+        return None 
+
+    def start_stream(self, output_device):
+        return sd.Stream(
+            device=(None, output_device),  # Input = default, Output = selected
+            samplerate=self.SAMPLE_RATE,
+            blocksize=self.CHUNK_SIZE,
+            channels=2,
+            callback=self.audio_callback)
+
+
+    def audio_callback(self, input, output, frames, time, status):
+        if status:
+            print(status)
+
+        output[:] = input  # Pass-through audio (if needed)
+
+    # Convert stereo/multichannel input to mono
+        audio_data = np.mean(input, axis=1)  # Average channels for mono
+
+    # Perform FFT
+        fft_result = np.fft.fft(audio_data)
+        freq_magnitude = np.abs(fft_result[:len(fft_result) // 2])  # Only take positive frequencies
+        freqs = np.fft.fftfreq(len(fft_result), d=1/self.SAMPLE_RATE)[:len(fft_result) // 2]  
+        # Positive frequencies
+
+    # Extract bass, mids, and highs
+        bass_level = np.sum(freq_magnitude[(freqs >= self.BASS_RANGE[0]) & (freqs < self.BASS_RANGE[1])])
+        mids_level = np.sum(freq_magnitude[(freqs >= self.MIDS_RANGE[0]) & (freqs < self.MIDS_RANGE[1])])
+        highs_level = np.sum(freq_magnitude[(freqs >= self.HIGHS_RANGE[0]) & (freqs < self.HIGHS_RANGE[1])])
+
+    # Normalize and scale values to 0-255 range
+        bass_scaled = int(np.clip((bass_level / 20) * 255, 0, 255))
+        mids_scaled = int(np.clip((mids_level / 3000) * 255, 0, 255))
+        highs_scaled = int(np.clip((highs_level / 2600) * 255, 0, 255))
+
+        rgb = (bass_scaled, mids_scaled,highs_scaled)
+        self.arduino.send_rgb_to_arduino(rgb)
+
 
 class Arduino():
     def __init__(self):
@@ -301,8 +371,7 @@ class Arduino():
             if "Arduino" in port.description:
                 return port.device
         return False
-
-
+    
 #Main Function
 if __name__ == "__main__":
     root = tk.CTk(fg_color="#252422")
