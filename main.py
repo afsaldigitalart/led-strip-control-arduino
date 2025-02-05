@@ -27,7 +27,7 @@ class LEDstrip():
         self.is_on = True
         self.SAMPLE_RATE = 44100  
         self.CHUNK_SIZE = 1024 
-        self.BASS_RANGE = (180, 250)
+        self.BASS_RANGE = (50, 250)
         self.MIDS_RANGE = (250, 2000)
         self.HIGHS_RANGE = (2000, 20000)
         self.smooth_bass = 0
@@ -342,9 +342,9 @@ class LEDstrip():
         self.smooth_mids = max(self.smooth_mids*0.85, self.mids_level)
         self.smooth_highs = max(self.smooth_highs*0.85, self.highs_level)
     # Normalize and scale values to 0-255 range
-        bass_scaled = int(np.clip((self.smooth_bass / 40) * 255, 0, 255))
-        mids_scaled = int(np.clip((self.smooth_mids / 800) * 255, 0, 255))
-        highs_scaled = int(np.clip((self.smooth_highs / 900) * 255, 0, 255))
+        bass_scaled = int(np.clip((self.smooth_bass / 100) * 255, 0, 255))
+        mids_scaled = int(np.clip((self.smooth_mids / 1000) * 255, 0, 255))
+        highs_scaled = int(np.clip((self.smooth_highs /1800)* 255, 0, 255))
 
         rgb = (bass_scaled, mids_scaled,highs_scaled)
         self.arduino.send_rgb_to_arduino(rgb)
