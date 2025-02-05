@@ -30,6 +30,9 @@ class LEDstrip():
         self.BASS_RANGE = (180, 250)
         self.MIDS_RANGE = (250, 2000)
         self.HIGHS_RANGE = (2000, 20000)
+        self.smooth_bass = 0
+        self.smooth_mids = 0
+        self.smooth_highs = 0
         self.output_device = self.get_audio_output_device()
 
         self.arduino = Arduino() 
@@ -320,9 +323,8 @@ class LEDstrip():
         if status:
             print(status)
 
-        output[:] = input  # Pass-through audio (if needed)
+        output[:] = input
 
-    # Convert stereo/multichannel input to mono
         audio_data = np.mean(input, axis=1)  # Average channels for mono
 
     # Perform FFT
@@ -332,14 +334,17 @@ class LEDstrip():
         # Positive frequencies
 
     # Extract bass, mids, and highs
-        bass_level = np.sum(freq_magnitude[(freqs >= self.BASS_RANGE[0]) & (freqs < self.BASS_RANGE[1])])
-        mids_level = np.sum(freq_magnitude[(freqs >= self.MIDS_RANGE[0]) & (freqs < self.MIDS_RANGE[1])])
-        highs_level = np.sum(freq_magnitude[(freqs >= self.HIGHS_RANGE[0]) & (freqs < self.HIGHS_RANGE[1])])
+        self.bass_level = np.sum(freq_magnitude[(freqs >= self.BASS_RANGE[0]) & (freqs < self.BASS_RANGE[1])])
+        self.mids_level = np.sum(freq_magnitude[(freqs >= self.MIDS_RANGE[0]) & (freqs < self.MIDS_RANGE[1])])
+        self.highs_level = np.sum(freq_magnitude[(freqs >= self.HIGHS_RANGE[0]) & (freqs < self.HIGHS_RANGE[1])])
 
+        self.smooth_bass = max(self.smooth_bass*0.85, self.bass_level)
+        self.smooth_mids = max(self.smooth_mids*0.85, self.mids_level)
+        self.smooth_highs = max(self.smooth_highs*0.85, self.highs_level)
     # Normalize and scale values to 0-255 range
-        bass_scaled = int(np.clip((bass_level / 20) * 255, 0, 255))
-        mids_scaled = int(np.clip((mids_level / 3000) * 255, 0, 255))
-        highs_scaled = int(np.clip((highs_level / 2600) * 255, 0, 255))
+        bass_scaled = int(np.clip((self.smooth_bass / 40) * 255, 0, 255))
+        mids_scaled = int(np.clip((self.smooth_mids / 800) * 255, 0, 255))
+        highs_scaled = int(np.clip((self.smooth_highs / 900) * 255, 0, 255))
 
         rgb = (bass_scaled, mids_scaled,highs_scaled)
         self.arduino.send_rgb_to_arduino(rgb)
