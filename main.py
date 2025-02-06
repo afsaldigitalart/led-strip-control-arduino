@@ -25,15 +25,16 @@ class LEDstrip():
         self.running_rainbow = False #flag for rainbow mode
         self.is_locked = False #flag for color selection
         self.is_on = True
+        self.running_pulse = False
         self.SAMPLE_RATE = 44100  
         self.CHUNK_SIZE = 1024 
-        self.BASS_RANGE = (50, 250)
+        self.BASS_RANGE = (50, 200)
         self.MIDS_RANGE = (250, 2000)
         self.HIGHS_RANGE = (2000, 20000)
         self.smooth_bass = 0
         self.smooth_mids = 0
         self.smooth_highs = 0
-        self.output_device = self.get_audio_output_device()
+        # self.output_device = self.get_audio_output_device()
 
         self.arduino = Arduino() 
         self.root.title("Color Selector")
@@ -178,7 +179,7 @@ class LEDstrip():
     value. Returns a tuple"""
 
     def on_motion(self, event):
-        if self.is_locked or not self.is_on or self.running_rainbow:  
+        if self.is_locked or not self.is_on or self.running_rainbow or self.running_pulse:  
             return
         x, y = event.x, event.y
         if 0 <= x <= 380 and 0 <= y <= 380:
@@ -193,7 +194,7 @@ class LEDstrip():
     corresponding colors"""
 
     def on_click(self, event): 
-        if self.is_locked: 
+        if self.is_locked or self.running_rainbow or self.running_pulse: 
             return
 
         else:
@@ -223,10 +224,11 @@ class LEDstrip():
             self.onoff.configure(text="On", fg_color="#5CB85C")
             self.turnon()
             self.is_on = True
+            if self.running_pulse == True:
+                self.pulse_on()
         """Toggles on and of Function"""
 
     def changeColor(self):
-        global is_locked
         if self.is_on:
             self.is_locked = False
 
@@ -255,7 +257,7 @@ class LEDstrip():
 
     def rainbowOn(self):
         if self.switchR.get():  
-            if not self.running_rainbow: 
+            if not self.running_rainbow and not self.running_pulse: 
                 self.running_rainbow = True
                 threading.Thread(target=self.rainbow_effect, daemon=True).start()
         else:
@@ -266,7 +268,64 @@ class LEDstrip():
                 else:
                     self.turnoff()
 
+    def pulse_on(self):
+            self.running_pulse = True
+            self.stream = self.start_stream()
+            self.stream.start()
+    def pulse_off(self):
+            self.running_pulse = False
+            self.stream.stop()  
+            self.stream.close()
+            if self.selected_color:
+                self.arduino.send_rgb_to_arduino(self.selected_color)
+
+    def toggle_pulsating_mode(self):
+        if self.switchP.get():
+            if self.is_on:
+                self.pulse_on()
+        else:
+            self.pulse_off()
+
+    def start_stream(self):
+        return sd.Stream(
+            device=(None, None),  
+            samplerate=self.SAMPLE_RATE,
+            blocksize=self.CHUNK_SIZE,
+            channels=2,
+            callback=self.audio_callback)
+
+
+    def audio_callback(self, input, output, frames, time, status):
+        if status:
+            print(status)
+
+        output[:] = input
+        audio_data = np.mean(input, axis=1) 
+
+        fft_result = np.fft.fft(audio_data)
+        freq_magnitude = np.abs(fft_result[:len(fft_result) // 2])  
+        freqs = np.fft.fftfreq(len(fft_result), d=1/self.SAMPLE_RATE)[:len(fft_result) // 2]  
+
+        self.bass_level = np.sum(freq_magnitude[(freqs >= self.BASS_RANGE[0]) & (freqs < self.BASS_RANGE[1])])
+        self.mids_level = np.sum(freq_magnitude[(freqs >= self.MIDS_RANGE[0]) & (freqs < self.MIDS_RANGE[1])])
+        self.highs_level = np.sum(freq_magnitude[(freqs >= self.HIGHS_RANGE[0]) & (freqs < self.HIGHS_RANGE[1])])
+
+        self.smooth_bass = max(self.smooth_bass*0.85, self.bass_level)
+        self.smooth_mids = max(self.smooth_mids*0.85, self.mids_level)
+        self.smooth_highs = max(self.smooth_highs*0.85, self.highs_level)
+
+        bass_scaled = int(np.clip((self.smooth_bass / 90) * 255, 0, 255))
+        mids_scaled = int(np.clip((self.smooth_mids / 800) * 255, 0, 255))
+        highs_scaled = int(np.clip((self.smooth_highs /1600)* 255, 0, 255))
+
+        rgb = (bass_scaled, mids_scaled,highs_scaled)
+        self.arduino.send_rgb_to_arduino(rgb)
+    
     def turnoff(self):
+        self.running_pulse = False
+        self.running_rainbow = False
+        self.pulse_off()
+        
         self.arduino.send_rgb_to_arduino((0, 0, 0))
 
     def turnon(self):
@@ -292,62 +351,7 @@ class LEDstrip():
         icon = Icon("LED Control", image, menu=(item("Restore", action=self.restore, default=True), item("Quit", self.quit)))
         threading.Thread(target=icon.run, daemon=True).start()
 
-    def toggle_pulsating_mode(self):
-        if self.switchP.get():
-            self.stream = self.start_stream(self.output_device)
-            self.stream.start()  # Start the stream
-        else:
-            self.stream.stop()  # Stop the stream
-            self.stream.close()
 
-    def get_audio_output_device(self):
-        devices = sd.query_devices()
-        for i, device in enumerate(devices):
-            if "Bluetooth" in device["name"]:  # Look for Bluetooth device
-                print(f"Bluetooth device found: {device['name']}")
-   
-                return i  # Return Bluetooth device index
-        print("Using default speakers")
-        return None 
-
-    def start_stream(self, output_device):
-        return sd.Stream(
-            device=(None, output_device),  # Input = default, Output = selected
-            samplerate=self.SAMPLE_RATE,
-            blocksize=self.CHUNK_SIZE,
-            channels=2,
-            callback=self.audio_callback)
-
-
-    def audio_callback(self, input, output, frames, time, status):
-        if status:
-            print(status)
-
-        output[:] = input
-
-        audio_data = np.mean(input, axis=1)  # Average channels for mono
-
-    # Perform FFT
-        fft_result = np.fft.fft(audio_data)
-        freq_magnitude = np.abs(fft_result[:len(fft_result) // 2])  # Only take positive frequencies
-        freqs = np.fft.fftfreq(len(fft_result), d=1/self.SAMPLE_RATE)[:len(fft_result) // 2]  
-        # Positive frequencies
-
-    # Extract bass, mids, and highs
-        self.bass_level = np.sum(freq_magnitude[(freqs >= self.BASS_RANGE[0]) & (freqs < self.BASS_RANGE[1])])
-        self.mids_level = np.sum(freq_magnitude[(freqs >= self.MIDS_RANGE[0]) & (freqs < self.MIDS_RANGE[1])])
-        self.highs_level = np.sum(freq_magnitude[(freqs >= self.HIGHS_RANGE[0]) & (freqs < self.HIGHS_RANGE[1])])
-
-        self.smooth_bass = max(self.smooth_bass*0.85, self.bass_level)
-        self.smooth_mids = max(self.smooth_mids*0.85, self.mids_level)
-        self.smooth_highs = max(self.smooth_highs*0.85, self.highs_level)
-    # Normalize and scale values to 0-255 range
-        bass_scaled = int(np.clip((self.smooth_bass / 100) * 255, 0, 255))
-        mids_scaled = int(np.clip((self.smooth_mids / 1000) * 255, 0, 255))
-        highs_scaled = int(np.clip((self.smooth_highs /1800)* 255, 0, 255))
-
-        rgb = (bass_scaled, mids_scaled,highs_scaled)
-        self.arduino.send_rgb_to_arduino(rgb)
 
 
 class Arduino():
