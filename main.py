@@ -272,6 +272,7 @@ class LEDstrip():
             self.running_pulse = True
             self.stream = self.start_stream()
             self.stream.start()
+            
     def pulse_off(self):
             self.running_pulse = False
             self.stream.stop()  
