@@ -29,6 +29,9 @@ This software provides an interactive graphical user interface (GUI) to control 
 
    ```sh
    python main.py
+Or run the .exe file inside dist folder.
+
+
 ## Usage
 
 ### 🎨 Select a Color
