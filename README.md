@@ -1,5 +1,7 @@
 # LED Strip Control Software
 
+## Strictly personal program for my Personal Computer. For personal learning purpose only
+
 This software provides an interactive graphical user interface (GUI) to control an RGB LED strip using an Arduino. It allows users to select colors, adjust brightness, enable dynamic lighting effects (rainbow mode, pulsating mode), and sync LED brightness with audio levels.
 
 ## Features
