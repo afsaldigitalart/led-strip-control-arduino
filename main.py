@@ -209,6 +209,8 @@ class LEDstrip():
     """Selects the color when left clicks on the color wheel"""
 
     def sliderchange(self, brightness):
+        if self.running_pulse:
+            return
         if self.is_on:
             if self.selected_color:
                 f = self.adjust_brightness(self.selected_color, brightness)
@@ -256,8 +258,8 @@ class LEDstrip():
         yeilds Flase"""
 
     def rainbowOn(self):
-        if self.switchR.get():  
-            if not self.running_rainbow and not self.running_pulse: 
+        if self.switchR.get() and not self.running_pulse:  
+            if not self.running_rainbow: 
                 self.running_rainbow = True
                 threading.Thread(target=self.rainbow_effect, daemon=True).start()
         else:
@@ -269,6 +271,8 @@ class LEDstrip():
                     self.turnoff()
 
     def pulse_on(self):
+            if self.running_rainbow:
+                return
             self.running_pulse = True
             self.stream = self.start_stream()
             self.stream.start()
@@ -277,7 +281,9 @@ class LEDstrip():
             self.running_pulse = False
             self.stream.stop()  
             self.stream.close()
-            if self.selected_color:
+            if self.selected_color == None:
+                self.arduino.send_rgb_to_arduino((0,0,0))
+            else:
                 self.arduino.send_rgb_to_arduino(self.selected_color)
 
     def toggle_pulsating_mode(self):
@@ -325,8 +331,8 @@ class LEDstrip():
     def turnoff(self):
         self.running_pulse = False
         self.running_rainbow = False
-        self.pulse_off()
-        
+        if self.running_pulse:
+            self.pulse_off()
         self.arduino.send_rgb_to_arduino((0, 0, 0))
 
     def turnon(self):

@@ -5,7 +5,7 @@ a = Analysis(
     ['main.py'],
     pathex=[],
     binaries=[],
-    datas=[('icon.ico', '.')],
+    datas=[('C:\\Users\\afsal\\OneDrive\\Desktop\\LED\\icon.ico', '.')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
