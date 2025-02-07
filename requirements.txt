@@ -1,0 +1,6 @@
+customtkinter
+pystray
+pillow
+pyserial
+sounddevice
+numpy
