@@ -21,6 +21,7 @@ class LEDstrip():
         self.xpos = 0.71 #allingment of Labels, Slider and Buttons in X Axis
         self.running_rainbow = False #flag for rainbow mode
         self.is_locked = False #flag for color selection
+        self.selected_color = None
         self.is_on = True
         self.running_pulse = False
         self.SAMPLE_RATE = 44100  
@@ -132,9 +133,22 @@ class LEDstrip():
         anothercolor.place(relx=self.xpos, rely=0.83, anchor="center")
         #Button to enable user to select another color once a color is selected already
 
+        quitButton = tk.CTkButton(self.root,
+            text="Quit",
+            command=self.quit,
+            text_color="#fffcf2",
+            height=40,
+            font=("Arial", 12),
+            border_color="#fffcf2",
+            hover_color="#eb5e28",
+            corner_radius=60,
+            fg_color="#252422")
+        quitButton.place(relx=self.xpos, rely=0.89, anchor="center")
+
         self.color_wheel_label.bind("<Motion>", self.on_motion)
         self.color_wheel_label.bind("<Button-1>", self.on_click)
         #For tracking mouse movements and show the color in real time
+        
 
     def resource_path(self, relative_path):
         import sys
@@ -208,7 +222,9 @@ class LEDstrip():
     """Selects the color when left clicks on the color wheel"""
 
     def sliderchange(self, brightness):
-        if self.running_pulse:
+        if self.selected_color == None:
+            pass
+        if self.running_pulse or self.running_rainbow:
             return
         if self.is_on:
             if self.selected_color:
