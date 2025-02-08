@@ -22,6 +22,9 @@ This software provides an interactive graphical user interface (GUI) to control 
   ```sh
   pip install -r requirements.txt
 
+- Install (doc:[VB Cable Virtual Audio](https://vb-audio.com/Cable/)) for the working of Pulsating Mode
+After turning on Pulsing mode, change the output device to VB Virtual Audio (Change output only after turning on the Pulsating Mode) 
+
 
 ## Running the Application
 
