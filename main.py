@@ -2,15 +2,12 @@ import threading
 import customtkinter as tk
 import colorsys
 import math
-import sys
-import os
-from pystray import Icon, MenuItem as item
 from PIL import Image, ImageTk, ImageDraw, ImageColor
 import serial.tools.list_ports 
 import serial
 import time
-import sounddevice as sd
-import numpy as np
+
+"""pystary,sys, os, numpy, sounddevice also have been imported at their respective functions to reduce startup time"""
 
 """The Sotware is a personal project I did to learn more about Arduino. But eventually I learnt
 the CTKinter module also. It was a great learning experience and I will be adding more features
@@ -140,6 +137,8 @@ class LEDstrip():
         #For tracking mouse movements and show the color in real time
 
     def resource_path(self, relative_path):
+        import sys
+        import os
         try:
             base_path = sys._MEIPASS
         except Exception:
@@ -294,6 +293,7 @@ class LEDstrip():
             self.pulse_off()
 
     def start_stream(self):
+        import sounddevice as sd
         return sd.Stream(
             device=(None, None),  
             samplerate=self.SAMPLE_RATE,
@@ -303,6 +303,7 @@ class LEDstrip():
 
 
     def audio_callback(self, input, output, frames, time, status):
+        import numpy as np
         if status:
             print(status)
 
@@ -354,6 +355,7 @@ class LEDstrip():
         self.tray()
 
     def tray(self):
+        from pystray import Icon, MenuItem as item
         image = Image.open(r"C:\Users\afsal\OneDrive\Desktop\LED\icon.ico")
         icon = Icon("LED Control", image, menu=(item("Restore", action=self.restore, default=True), item("Quit", self.quit)))
         threading.Thread(target=icon.run, daemon=True).start()
