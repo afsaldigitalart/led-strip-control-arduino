@@ -24,7 +24,7 @@ This software provides an interactive graphical user interface (GUI) to control 
 
 - Install [VB Cable Virtual Audio](https://vb-audio.com/Cable/) for the working of Pulsating Mode.
 After turning on Pulsing mode, change the output device to VB Virtual Audio 
-#### (Change output only after turning on the Pulsating Mode) 
+- ### Change output only after turning on the Pulsating Mode
 
 
 ## Running the Application
