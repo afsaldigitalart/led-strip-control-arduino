@@ -1,72 +1,176 @@
-# LED Strip Control Software
 
-## Strictly personal program for my Personal Computer. For personal learning purpose only
+# Arduino  Led Strip Controller
 
-This software provides an interactive graphical user interface (GUI) to control an RGB LED strip using an Arduino. It allows users to select colors, adjust brightness, enable dynamic lighting effects (rainbow mode, pulsating mode), and sync LED brightness with audio levels.
+This project is a Python-based application that allows users to control an LED strip connected to an Arduino. The application provides a graphical user interface (GUI) for selecting colors, adjusting brightness, and enabling various lighting modes such as Rainbow, Pulsating, and Ambient. The application communicates with the Arduino via a serial connection to send RGB values.
 
+__Strictly personal program. For personal learning purpose only__
+
+## Requirements
+To run this application, you need the following Python packages:
+
+- customtkinter
+- Pillow
+- pystray
+- numpy
+- sounddevice
+- mss
+- opencv-python
+- pyserial
+
+You can install these packages using pip:
+```
+pip install requirements.txt
+```
 ## Features
 
-- 🎨 **Color Selection**: Pick colors from a color wheel.
-- 🔆 **Brightness Control**: Adjust LED brightness via a slider.
-- 🌈 **Rainbow Mode**: Smoothly transitions colors.
-- 💡 **Pulsating Mode**: Syncs LED brightness with audio.
-- 🖥️ **System Tray Support**: Runs in the background when minimized.
-- 🔌 **Automatic Arduino Port Detection**: Identifies connected Arduino automatically.
+- **Color Selection**: Users can select colors from a color wheel.
 
-## Installation
+- **Brightness Control**: Adjust the brightness of the selected color using a slider.
 
-### Prerequisites
-- **Python 3.x**
-- Install dependencies using:
+- **Lighting Modes**:
 
-  ```sh
-  pip install -r requirements.txt
+    **Rainbow Mode**: Cycles through a spectrum of colors.
 
-- Install [VB Cable Virtual Audio](https://vb-audio.com/Cable/) for the working of Pulsating Mode
-After turning on Pulsing mode, change the output device to VB Virtual Audio (Change output only after turning on the Pulsating Mode) 
+    **Pulsating Mode**: Changes the LED color based on audio input (bass, mids, highs).
 
+    **Ambient Mode**: Matches the LED color to the average color of the screen.
 
-## Running the Application
+- **On/Off Control**: Turn the LED strip on or off.
 
-1. **Connect the Arduino** with the LED strip.
-2. **Upload the corresponding Arduino sketch** (if required).
-3. **Run the script** using:
+- **System Tray Integration**: Minimize the application to the system tray.
 
-   ```sh
-   python main.py
+## File Overview
 
-#### Or run the .exe file inside dist folder
+### main.py
+- **Purpose**: Entry point of the application.
+
+- **Key Functions**:
+
+    - Initializes the Arduino connection.
+
+    - Creates the main application window.
+
+    - Starts the main event loop.
 
 
-## Usage
 
-### 🎨 Select a Color
-- Click on the **color wheel** to set the LED color.
+### arduino.py
+- **Purpose**: Intializes and connect to the Arduino.
 
-### 🔆 Adjust Brightness
-- Use the **brightness slider** to control LED brightness.
+- **Key Functions**:
 
-### 🌈 Enable Effects
-- Toggle **Rainbow Mode** for smooth color cycling.
-- Toggle **Pulsating Mode** to sync LED brightness with audio.
+    ____init__ __: Initializes the connection to the Arduino.
 
-### 💡 Turn ON/OFF
-- Click the **power button** to switch the LED strip on or off.
+    __send_rgb_to_arduino__: Sends RGB values to the Arduino.
 
-### 🖥️ Minimize to Tray
-- The app **runs in the background** when minimized.
+    __checkPort__: Automatically detects the port where the Arduino is connected.
 
-## Technologies Used
+### gui.py
+- **Purpose**: Manages the graphical user interface.
 
-- 🐍 **Python** – Core programming language
-- 🎨 **CustomTkinter** – For the graphical user interface
-- 🔌 **PySerial** – For communication with Arduino
-- 🖼️ **Pillow** – For image processing (color wheel)
-- 🖥️ **PyStray** – For system tray integration
-- 🎵 **Sounddevice & NumPy** – For audio processing
+- **Key Functions**:
+    - __Color Wheel__: Displays a color wheel for color selection.
 
-## Future Enhancements
+    - __Brightness Slider__: Allows users to adjust the brightness.
 
-- 🎵 **Improved Audio Spectrum Analysis** – More accurate LED sync.
-- 🕹️ **Mobile App Integration** – Remote control via a smartphone.
-- 🧩 **Custom LED Animations** – More dynamic lighting effects.
+    - __Mode Switches__: Toggles for Rainbow, Pulsating, and Ambient modes.
+
+    - __On/Off Button__: Controls the power state of the LED strip.
+
+    - __Quit Button__: Exits the application.
+
+### logic.py
+- **Purpose**:  Implements the core logic of the application.
+
+- **Key Functions**:
+    - __create_color_wheel__: Generates a color wheel image.
+
+    - __get_color_from_position__: Determines the color based on mouse position.
+
+    - __adjust_brightness__: Adjusts the brightness of the selected color.
+
+    - __rainbow_effect__: Implements the Rainbow mode.
+
+    - __pulse_on/pulse_off__: Implements the Pulsating mode based on audio input.
+
+    - __AmbientMode__: Implements the Ambient mode by matching the screen's average color.
+
+    - __turnoff/turnon__: Controls the LED strip's power state.
+# Usage
+
+## 1. Upload the Arduino Sketch
+- Open the [Arduino IDE](https://www.arduino.cc/en/software).
+
+- Navigate to the arduino folder in this project and open the .ino file (e.g., LED_Control.ino).
+
+- Connect your Arduino to your computer.
+
+- Select the correct board and port from the Tools menu in the Arduino IDE.
+
+- Upload the sketch to your Arduino.
+
+## 2. Connect the Arduino
+- Ensure your Arduino is connected to your computer and the correct port is detected by the application.
+
+## 3. Run the Application
+- Execute the 'Led Controller.exe' from **dist folder** to start the application:
+
+## 4. Select a Color
+- Use the color wheel to select a color. The selected color will be sent to the Arduino, and the LED strip will update accordingly.
+
+## 5. Adjust Brightness
+- Use the slider to adjust the brightness of the selected color.
+
+## 6. Enable Modes
+Toggle the switches to enable different lighting modes:
+
+- Rainbow Mode: Cycles through a spectrum of colors.
+
+- Pulsating Mode: Changes the LED color based on audio input (bass, mids, highs).
+
+- Ambient Mode: Matches the LED color to the average color of your screen.
+
+## 7. Turn On/Off
+- Use the On/Off button to control the power state of the LED strip.
+
+## 8. System Tray
+- The application can be minimized to the system tray. Right-click the tray icon to restore the application or quit.
+
+### Notes
+- Ensure the Arduino is properly set up to receive RGB values via serial communication.
+
+- The Pulsating mode requires an audio input device to be connected and configured.
+
+- The Ambient mode captures the screen's average color and may require additional permissions on some operating systems.
+# Pulsating Mode
+#### VB-Cable Virtual Audio Cable
+**Purpose**: VB-Cable is a virtual audio device that allows you to route audio from one application to another. It is useful for capturing audio input for the Pulsating Mode.
+
+Download Link: [VB-Cable Virtual Audio Cable](https://vb-audio.com/Cable/)
+
+__Installation:__
+
+- Download the VB-Cable installer from the [official website](https://vb-audio.com/Cable/).
+
+- Run the installer and follow the on-screen instructions.
+
+- After installation, VB-Cable will appear as an audio device in your system's sound settings.
+
+__Configuration:__
+
+- Set VB-Cable as the default playback device in your system's sound settings.
+
+- Set VB-Cable as the default recording device to capture the audio input for the Pulsating Mode.
+# Hardware Requirements
+
+- Arduino Uno 
+- RGB LED strip (NON ADDRESABLE)
+- USB cable for Arduino
+- Jumper wires
+- Power supply for the LED strip
+## 🔗 Links
+
+[Email](mailto:afsalshajibismi@gmail.com)
+
+[Instagram](https:www.instagram.com/afsaldigitalart)
+
