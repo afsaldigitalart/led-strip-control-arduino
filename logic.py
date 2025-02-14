@@ -1,13 +1,7 @@
 from PIL import Image, ImageDraw, ImageColor
-import sys
-import os
-import math
 import threading
-import numpy as np
-import sounddevice as sd
-from pystray import Icon, MenuItem as item
 import time
-import colorsys
+import numpy as np
 from gui import UserInterface
 
 
@@ -36,6 +30,8 @@ class Logic():
         self.FRAME_RATE = 30
         
     def resource_path(self, relative_path):
+        import sys
+        import os
         try:
             base_path = sys._MEIPASS
         except Exception:
@@ -55,6 +51,7 @@ class Logic():
     slice is created. This pie slice is filled with cooresponding hue""" 
 
     def get_color_from_position(self, x, y, size=380):
+        import math
         center = (size // 2, size // 2)
         dx = x - center[0]
         dy = y - center[1]
@@ -131,6 +128,7 @@ class Logic():
             self.is_locked = False
 
     def hue_to_rgb(self, hue):
+        import colorsys
         r, g, b = colorsys.hsv_to_rgb(hue / 360.0, 1.0, 1.0)
         return int(r * 255), int(g * 255), int(b * 255)
 
@@ -192,6 +190,7 @@ class Logic():
             self.pulse_off()
 
     def start_stream(self):
+        import sounddevice as sd
         return sd.Stream(
             device=(None, None),  
             samplerate=self.SAMPLE_RATE,
@@ -247,6 +246,7 @@ class Logic():
         thread.start()
 
     def ambient_loop(self):
+        
         import mss
         import cv2
         while self.running_ambient:
@@ -300,6 +300,7 @@ class Logic():
         self.tray()
 
     def tray(self):
-        image = Image.open(r"assets\icon.ico")
+        from pystray import Icon, MenuItem as item
+        image = Image.open(self.resource_path("icon.ico"))
         icon = Icon("LED Control", image, menu=(item("Restore", action=self.restore, default=True), item("Quit", self.quit)))
         threading.Thread(target=icon.run, daemon=True).start()

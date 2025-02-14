@@ -16,7 +16,7 @@ class UserInterface():
         self.root.geometry("1129x740")
         self.root.configure(fg_color="#252422")
         self.root.attributes('-alpha', 0.95)
-        self.root.iconbitmap(self.logic.resource_path("assets\icon.ico"))
+        self.root.iconbitmap(self.logic.resource_path("icon.ico"))
         self.root.protocol("WM_DELETE_WINDOW", self.logic.close)
         self.UIwidgets()
 
