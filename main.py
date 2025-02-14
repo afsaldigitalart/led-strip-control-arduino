@@ -4,15 +4,10 @@ from logic import Logic
 
 
 arduino_connection = arduino.Arduino()
-root = tk.CTk(fg_color="#252422")
+root = tk.CTk()
 logic = Logic(root, arduino_connection)
 
 
-def main(root):
-    # UserInterface(root, arduino_connection, logic)
-    root.mainloop()
-
-
 if __name__ == "__main__":
-    main(root)
+    root.mainloop()
 

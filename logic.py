@@ -14,6 +14,7 @@ from gui import UserInterface
 class Logic():
 
     def __init__(self, root, arduino):
+        self.xpos = 0.71
         self.root = root # Create a Tkinter root window
         self.arduino = arduino  # Replace with actual Arduino connection instance
         self.ui = UserInterface(self.root, self.arduino, self) 
@@ -74,7 +75,7 @@ class Logic():
     value. Returns a tuple"""
 
     def on_motion(self, event):
-        if self.is_locked or not self.is_on or self.running_rainbow or self.running_pulse:  
+        if self.is_locked or not self.is_on or self.running_rainbow or self.running_pulse or self.running_ambient:  
             return
         x, y = event.x, event.y
         if 0 <= x <= 380 and 0 <= y <= 380:
@@ -83,8 +84,8 @@ class Logic():
             bricolor = self.adjust_brightness(color, val)
             self.arduino.send_rgb_to_arduino(bricolor)
 
-        self.ui.color_label.configure(text=color, font=("Arial", 40, "bold"), text_color="#fffcf2")
-        self.ui.color_label.place(relx=self.xpos, rely=0.22, anchor="center")
+        self.ui.color_label.configure(text=color, font=("Arial", 39, "bold"), text_color="#fffcf2")
+        self.ui.color_label.place(relx=self.xpos, rely=0.185, anchor="center")
     """Checks the mouse data and if the mouse is hovering above the color wheel, it returns the
     corresponding colors"""
 
@@ -104,7 +105,7 @@ class Logic():
     """Selects the color when left clicks on the color wheel"""
 
     def sliderchange(self, brightness):
-        if self.running_pulse:
+        if self.running_pulse or self.running_ambient or self.running_rainbow:
             return
         if self.is_on:
             if self.selected_color:
@@ -153,7 +154,7 @@ class Logic():
         yeilds Flase"""
 
     def rainbowOn(self):
-        if self.ui.switchR.get() and not self.running_pulse:  
+        if self.ui.switchR.get() and not self.running_pulse and not self.running_ambient:  
             if not self.running_rainbow: 
                 self.running_rainbow = True
                 threading.Thread(target=self.rainbow_effect, daemon=True).start()
@@ -166,7 +167,7 @@ class Logic():
                     self.turnoff()
 
     def pulse_on(self):
-            if self.running_rainbow:
+            if self.running_rainbow or self.running_ambient:
                 return
             print("TURNING ON")
             self.running_pulse = True
@@ -239,7 +240,7 @@ class Logic():
             self.arduino.send_rgb_to_arduino(self.selected_color)
     
     def AmbientMode(self):
-        if not self.running_ambient:
+        if not self.running_ambient or self.running_pulse or self.running_rainbow:
             return
 
         thread = threading.Thread(target=self.ambient_loop, daemon=True)
@@ -258,7 +259,7 @@ class Logic():
                 DOWNSCALE_DIMENSION = (int(self.image_data.shape[1]*0.5) , int(self.image_data.shape[0]*0.5))
                 self.downscaled_image = cv2.resize(self.image_data, DOWNSCALE_DIMENSION, interpolation=cv2.INTER_AREA)
                 r,g,b = self.averageColor(self.downscaled_image)
-                new_color = self.exp_smooth(self.previous_color, (r,g,b), 0.3) 
+                new_color = self.exp_smooth(self.previous_color, (r,g,b), 0.5) 
                 self.arduino.send_rgb_to_arduino(new_color)
                 self.previous_color = (new_color)
             time.sleep(1/self.FRAME_RATE)
@@ -299,6 +300,6 @@ class Logic():
         self.tray()
 
     def tray(self):
-        image = Image.open(r"C:\Users\afsal\OneDrive\Desktop\LED\icon.ico")
+        image = Image.open(r"assets\icon.ico")
         icon = Icon("LED Control", image, menu=(item("Restore", action=self.restore, default=True), item("Quit", self.quit)))
         threading.Thread(target=icon.run, daemon=True).start()

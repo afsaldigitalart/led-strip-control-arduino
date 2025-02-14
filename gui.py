@@ -1,6 +1,6 @@
 import customtkinter as ctk
 from PIL import ImageTk
-
+import threading
 
 
 class UserInterface():
@@ -13,8 +13,10 @@ class UserInterface():
         self.arduino = arduino_connection 
         self.root.title("Color Selector")
         self.root.resizable(False, False)
-        self.root.geometry("1129x783")
-        self.root.iconbitmap(self.logic.resource_path("icon.ico"))
+        self.root.geometry("1129x740")
+        self.root.configure(fg_color="#252422")
+        self.root.attributes('-alpha', 0.95)
+        self.root.iconbitmap(self.logic.resource_path("assets\icon.ico"))
         self.root.protocol("WM_DELETE_WINDOW", self.logic.close)
         self.UIwidgets()
 
@@ -23,10 +25,13 @@ class UserInterface():
             self.color_wheel_photo = ImageTk.PhotoImage(color_wheel)
 
             self.color_wheel_label = ctk.CTkLabel(self.root, image=self.color_wheel_photo, text="") 
-            self.color_wheel_label.pack(padx=120, pady=10, side="left", anchor="center")
+            self.color_wheel_label.place(relx=0.27, rely=0.46, anchor="center")
 
-            self.color_label = ctk.CTkLabel(self.root, text="0 0 0",font=("Arial", 40, "bold"),text_color = "#fffcf2" )
-            self.color_label.place(relx=self.xpos, rely=0.22, anchor="center")
+            self.color_label = ctk.CTkLabel(self.root,
+                text="0 0 0",
+                font=("Arial", 40, "bold"),
+                text_color = "#fffcf2" )
+            self.color_label.place(relx=self.xpos, rely=0.19, anchor="center")
             #The above code displays the color wheel
 
             self.selected_text = ctk.CTkLabel(
@@ -35,7 +40,7 @@ class UserInterface():
                 font=("Arial", 12),
                 text_color="#fffcf2",
                 anchor="center")
-            self.selected_text.place(relx=self.xpos, rely=0.26, anchor="center")
+            self.selected_text.place(relx=self.xpos, rely=0.23, anchor="center")
             #For the "Selected Color Text"
             
             self.brightness_slider = ctk.CTkSlider(self.root, 
@@ -45,20 +50,22 @@ class UserInterface():
                 fg_color="#232529",
                 border_width=1,
                 border_color="#fffcf2",
-                width=350,
-                height=20,
+                width=380,
+                height=30,
                 button_color="#eb5e28",
                 hover=True,
                 command=self.logic.sliderchange)
             self.brightness_slider.set(100)
-            self.brightness_slider.place(relx=self.xpos, rely=0.39, anchor="center")
+            self.brightness_slider.place(relx=self.xpos, rely=0.34, anchor="center")
+
+
             self.selected_label = ctk.CTkLabel(
                 self.root,
                 text="Brightness",
                 font=("Arial", 12),
                 text_color="#ffffff",
                 anchor="center")
-            self.selected_label.place(relx=self.xpos, rely=0.43, anchor="center")
+            self.selected_label.place(relx=self.xpos, rely=0.39, anchor="center")
             #Brightness Slider and Text
 
             self.switchR = ctk.CTkSwitch(self.root,
@@ -70,7 +77,7 @@ class UserInterface():
                 button_color="#fffcf2",
                 command= self.logic.rainbowOn
                 )
-            self.switchR.place(relx=self.xpos, rely=0.54, anchor="center")
+            self.switchR.place(relx=self.xpos, rely=0.485, anchor="center")
             #Toggle Button for Rainbow Mode
 
             self.switchP = ctk.CTkSwitch(self.root,
@@ -82,7 +89,7 @@ class UserInterface():
                 button_color="#fffcf2",
                 command=self.logic.toggle_pulsating_mode
                 )
-            self.switchP.place(relx=self.xpos, rely=0.62, anchor="center")
+            self.switchP.place(relx=self.xpos, rely=0.56, anchor="center")
             #Toggle Button for Rainbow Mode
 
 
@@ -95,7 +102,7 @@ class UserInterface():
                 button_color="#fffcf2",
                 command=self.logic.toggle_ambient
                 )
-            self.switchA.place(relx=self.xpos, rely=0.67, anchor="center")
+            self.switchA.place(relx=self.xpos, rely=0.635, anchor="center")
 
             self.onoff = ctk.CTkButton(
                 self.root,
@@ -112,19 +119,31 @@ class UserInterface():
 
             anothercolor = ctk.CTkButton(self.root,
                 text="Choose Another Color",
-                
                 text_color="#fffcf2",
-                height=40,
-                font=("Arial", 12),
-                border_color="#fffcf2",
+                height=25,
+                font=("Arial", 12, "bold"),
                 hover_color="#eb5e28",
-                border_width=1,
                 corner_radius=60,
                 fg_color="#252422",
                 command=self.logic.changeColor)
-            anothercolor.place(relx=self.xpos, rely=0.83, anchor="center")
+            anothercolor.place(relx=0.276, rely=0.76, anchor="center")
             #Button to enable user to select another color once a color is selected already
+
+            self.quit_app = ctk.CTkButton(
+                self.root,
+                text="Quit",
+                text_color="#fffcf2", 
+                hover_color="#eb5e28",
+                height= 50,
+                corner_radius=50,
+                fg_color="#252422",
+                font=("Arial", 20),
+                command=self.logic.quit)
+            self.quit_app.place(relx=self.xpos, rely=0.85, anchor="center")
+
 
             self.color_wheel_label.bind("<Motion>", self.logic.on_motion)
             self.color_wheel_label.bind("<Button-1>", self.logic.on_click)
-            #For tracking mouse movements and show the color in real time
+    
+    
+
