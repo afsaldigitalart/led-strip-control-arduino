@@ -39,6 +39,8 @@ pip install requirements.txt
 
 - **System Tray Integration**: Minimize the application to the system tray.
 
+![User Interface](https://github.com/user-attachments/assets/cec79ba7-ed32-4761-b74e-42cd38c7daeb)
+
 ## File Overview
 
 ### main.py
