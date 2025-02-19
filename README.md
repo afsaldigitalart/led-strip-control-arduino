@@ -21,7 +21,11 @@ To run this application, you need the following Python packages:
 You can install these packages using pip:
 ```
 pip install requirements.txt
+
 ```
+### Important:
+Connect Red wire to Arduino Pin 5, Green to 11 and Blue to 9 respectivley
+
 ## Features
 
 - **Color Selection**: Users can select colors from a color wheel.
