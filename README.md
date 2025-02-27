@@ -160,6 +160,7 @@ Toggle the switches to enable different lighting modes:
 
 Download Link: [VB-Cable Virtual Audio Cable](https://vb-audio.com/Cable/)
 
+
 __Installation:__
 
 - Download the VB-Cable installer from the [official website](https://vb-audio.com/Cable/).
