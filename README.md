@@ -34,11 +34,11 @@ Connect Red wire to Arduino Pin 5, Green to 11 and Blue to 9 respectivley
 
 - **Lighting Modes**:
 
-    **Rainbow Mode**: Cycles through a spectrum of colors.
+      **Rainbow Mode**: Cycles through a spectrum of colors.
 
-    **Pulsating Mode**: Changes the LED color based on audio input (bass, mids, highs).
+      **Pulsating Mode**: Changes the LED color based on audio input (bass, mids, highs).
 
-    **Ambient Mode**: Matches the LED color to the average color of the screen.
+      **Ambient Mode**: Matches the LED color to the average color of the screen.
 
 - **On/Off Control**: Turn the LED strip on or off.
 
