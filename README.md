@@ -65,7 +65,6 @@ Connect Red wire to Arduino Pin 5, Green to 11 and Blue to 9 respectivley
 
     - Starts the main event loop.
 
-
 ### arduino.py
 - **Purpose**: Intializes and connect to the Arduino.
 
