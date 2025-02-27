@@ -1,2 +1,5 @@
 dist/* linguist-vendored
 build/* linguist-vendored
+*.html linguist-vendored
+*.js linguist-vendored
+*.tex linguist-vendored
