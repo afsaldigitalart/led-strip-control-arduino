@@ -1,11 +1,7 @@
 * linguist-detectable
 *.py linguist-detectable
 *.cpp linguist-detectable
+*.ino linguist-detectable
 *.html linguist-vendored
-*.log linguist-vendored
-*.aux linguist-vendored
-*.sty linguist-vendored
-*.cls linguist-vendored
-*.bib linguist-vendored
 *.tex linguist-vendored
-*.tex linguist-ignore
+
