@@ -2,6 +2,7 @@
 
  ![App Icon](icon.ico)
 
+
 This project is a Python-based application that allows users to control an LED strip connected to an Arduino. The application provides a graphical user interface (GUI) for selecting colors, adjusting brightness, and enabling various lighting modes such as Rainbow, Pulsating, and Ambient. The application communicates with the Arduino via a serial connection to send RGB values.
 
 __Strictly personal program. For personal learning purpose only__
