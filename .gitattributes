@@ -2,6 +2,8 @@ build/ linguist-vendored
 dist/ linguist-vendored
 *.ink linguist-vendored
 *.html linguist-vendored
+*.exe linguist-vendored
+*.pkg linguist-vendored
 *.tex linguist-vendored
 build/ linguist-ignore
 dist/ linguist-ignore
