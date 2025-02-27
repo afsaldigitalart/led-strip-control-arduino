@@ -1,7 +1,5 @@
-* linguist-detectable
-*.py linguist-detectable
-*.cpp linguist-detectable
-*.ino linguist-detectable
-*.html linguist-vendored
-*.tex linguist-vendored
+build/ linguist-vendored
+dist/ linguist-vendored
+build/ linguist-ignore
+dist/ linguist-ignore
 
