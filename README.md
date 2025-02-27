@@ -179,6 +179,7 @@ __Configuration:__
 - USB cable for Arduino
 - Jumper wires
 - Power supply for the LED strip
+  
 ## 🔗 Links
 
 [Email](mailto:afsalshajibismi@gmail.com)
