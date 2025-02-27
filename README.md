@@ -23,8 +23,10 @@ You can install these packages using pip:
 pip install -r requirements.txt
 
 ```
+
 ### Important:
 Connect Red wire to Arduino Pin 5, Green to 11 and Blue to 9 respectivley
+
 
 ## Features
 
