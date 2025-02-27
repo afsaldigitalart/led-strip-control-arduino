@@ -20,7 +20,7 @@ To run this application, you need the following Python packages:
 
 You can install these packages using pip:
 ```
-pip install requirements.txt
+pip install -r requirements.txt
 
 ```
 ### Important:
