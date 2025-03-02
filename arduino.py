@@ -28,4 +28,4 @@ class Arduino():
         for port in ports:
             if "Arduino" in port.description:
                 return port.device 
-        return None
+        return

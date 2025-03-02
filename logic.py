@@ -167,7 +167,6 @@ class Logic():
     def pulse_on(self):
             if self.running_rainbow or self.running_ambient:
                 return
-            print("TURNING ON")
             self.running_pulse = True
             self.stream = self.start_stream()
             self.stream.start()

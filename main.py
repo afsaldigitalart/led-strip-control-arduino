@@ -11,3 +11,4 @@ logic = Logic(root, arduino_connection)
 if __name__ == "__main__":
     root.mainloop()
 
+ 
