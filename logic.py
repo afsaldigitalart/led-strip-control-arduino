@@ -27,7 +27,7 @@ class Logic():
         self.smooth_bass = 0
         self.smooth_mids = 0
         self.smooth_highs = 0
-        self.FRAME_RATE = 60
+        self.FRAME_RATE = 30
         
     def resource_path(self, relative_path):
         import sys
