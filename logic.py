@@ -27,7 +27,7 @@ class Logic():
         self.smooth_bass = 0
         self.smooth_mids = 0
         self.smooth_highs = 0
-        self.FRAME_RATE = 30
+        self.FRAME_RATE = 60
         
     def resource_path(self, relative_path):
         import sys
@@ -250,15 +250,13 @@ class Logic():
         import cv2
         while self.running_ambient:
             with mss.mss() as screenCapture:
-                DIMENSIONS = {'left':0, 'top':0, 'width': 1920, 'height':1080}
+                DIMENSIONS = {'left':0, 'top':0, 'width': 640, 'height':480}
                 ss = screenCapture.grab(DIMENSIONS)
-                
-
-                self.image_data = np.array(ss)[:,:,:3]
-                DOWNSCALE_DIMENSION = (int(self.image_data.shape[1]*0.5) , int(self.image_data.shape[0]*0.5))
-                self.downscaled_image = cv2.resize(self.image_data, DOWNSCALE_DIMENSION, interpolation=cv2.INTER_AREA)
-                r,g,b = self.averageColor(self.downscaled_image)
-                new_color = self.exp_smooth(self.previous_color, (r,g,b), 0.5) 
+                img = Image.frombytes("RGB", ss.size, ss.rgb)
+                colors = img.quantize(colors=1, method=0, dither=0)
+                palette = colors.getpalette()
+                r,g,b = (palette[:3])
+                new_color = self.exp_smooth(self.previous_color, (r,g,b), 0.75) 
                 self.arduino.send_rgb_to_arduino(new_color)
                 self.previous_color = (new_color)
             time.sleep(1/self.FRAME_RATE)
