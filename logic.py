@@ -247,7 +247,6 @@ class Logic():
     def ambient_loop(self):
         
         import mss
-        import cv2
         while self.running_ambient:
             with mss.mss() as screenCapture:
                 DIMENSIONS = {'left':0, 'top':0, 'width': 640, 'height':480}
