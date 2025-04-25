@@ -6,6 +6,7 @@ dist/ linguist-vendored
 *.toc linguist-vendored
 *.pkg linguist-vendored
 *.tex linguist-vendored
+*.tcl linguist-vendored
 build/ linguist-ignore
 dist/ linguist-ignore
 
