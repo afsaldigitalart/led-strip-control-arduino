@@ -1,6 +1,5 @@
 import customtkinter as ctk
 from PIL import ImageTk
-import threading
 
 
 class UserInterface():

@@ -1,5 +1,6 @@
 from PIL import Image, ImageDraw, ImageColor
 import threading
+import pyfftw
 import time
 import numpy as np
 from gui import UserInterface
@@ -19,7 +20,7 @@ class Logic():
         self.running_pulse = False
         self.selected_color = (0,0,0)
         self.previous_color = (0, 0, 0)
-        self.SAMPLE_RATE = 44100  
+        self.SAMPLE_RATE =  48000  
         self.CHUNK_SIZE = 1024 
         self.BASS_RANGE = (50, 200)
         self.MIDS_RANGE = (250, 2000)
@@ -28,6 +29,17 @@ class Logic():
         self.smooth_mids = 0
         self.smooth_highs = 0
         self.FRAME_RATE = 30
+
+        self.freq = np.fft.fftfreq(self.CHUNK_SIZE, d=1/self.SAMPLE_RATE)[:self.CHUNK_SIZE // 2]
+        self.fft_input = pyfftw.empty_aligned(self.CHUNK_SIZE, dtype='float32')
+        self.fft_output = pyfftw.empty_aligned(self.CHUNK_SIZE // 2 + 1, dtype='complex64')
+        self.fftw_object = pyfftw.FFTW(
+            self.fft_input, 
+            self.fft_output,
+            flags=('FFTW_MEASURE',), 
+            threads=2 
+        )
+
         
     def resource_path(self, relative_path):
         import sys
@@ -195,7 +207,8 @@ class Logic():
             samplerate=self.SAMPLE_RATE,
             blocksize=self.CHUNK_SIZE,
             channels=2,
-            callback=self.audio_callback)
+            callback=self.audio_callback,
+            latency="low")
 
 
     def audio_callback(self, input, output, frames, time, status):
@@ -203,15 +216,15 @@ class Logic():
             print(status)
 
         output[:] = input
-        audio_data = np.mean(input, axis=1) 
+        audio_data = np.mean(input, axis=1).astype(np.float32) 
 
-        fft_result = np.fft.fft(audio_data)
-        freq_magnitude = np.abs(fft_result[:len(fft_result) // 2])  
-        freqs = np.fft.fftfreq(len(fft_result), d=1/self.SAMPLE_RATE)[:len(fft_result) // 2]  
-
-        self.bass_level = np.sum(freq_magnitude[(freqs >= self.BASS_RANGE[0]) & (freqs < self.BASS_RANGE[1])])
-        self.mids_level = np.sum(freq_magnitude[(freqs >= self.MIDS_RANGE[0]) & (freqs < self.MIDS_RANGE[1])])
-        self.highs_level = np.sum(freq_magnitude[(freqs >= self.HIGHS_RANGE[0]) & (freqs < self.HIGHS_RANGE[1])])
+        self.fft_input[:] = audio_data
+        self.fftw_object() 
+        freq_magnitude = np.abs(self.fft_output[:self.CHUNK_SIZE // 2])
+        
+        self.bass_level = np.sum(freq_magnitude[(self.freq >= self.BASS_RANGE[0]) & (self.freq < self.BASS_RANGE[1])])
+        self.mids_level = np.sum(freq_magnitude[(self.freq >= self.MIDS_RANGE[0]) & (self.freq < self.MIDS_RANGE[1])])
+        self.highs_level = np.sum(freq_magnitude[(self.freq >= self.HIGHS_RANGE[0]) & (self.freq < self.HIGHS_RANGE[1])])
 
         self.smooth_bass = max(self.smooth_bass*0.85, self.bass_level)
         self.smooth_mids = max(self.smooth_mids*0.85, self.mids_level)
@@ -299,4 +312,3 @@ class Logic():
         from pystray import Icon, MenuItem as item
         image = Image.open(self.resource_path("icon.ico"))
         icon = Icon("LED Control", image, menu=(item("Restore", action=self.restore, default=True), item("Quit", self.quit)))
-        threading.Thread(target=icon.run, daemon=True).start()
