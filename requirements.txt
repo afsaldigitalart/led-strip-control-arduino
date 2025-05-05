@@ -8,3 +8,4 @@ pystray==0.19.5
 SoundCard==0.4.3
 sounddevice==0.5.1
 customtkinter==5.2.2
+pyFFTW==0.15.0

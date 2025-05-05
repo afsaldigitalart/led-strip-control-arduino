@@ -17,6 +17,7 @@ To run this application, you need the following Python packages:
 - sounddevice
 - mss
 - pyserial
+- pyfftw
 
 You can install these packages using pip:
 ```
