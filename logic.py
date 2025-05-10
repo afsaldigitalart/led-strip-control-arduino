@@ -3,6 +3,7 @@ import threading
 import pyfftw
 import time
 import numpy as np
+import subprocess
 from gui import UserInterface
 
 
@@ -28,7 +29,7 @@ class Logic():
         self.smooth_bass = 0
         self.smooth_mids = 0
         self.smooth_highs = 0
-        self.FRAME_RATE = 30
+        self.FRAME_RATE = 20
 
         self.freq = np.fft.fftfreq(self.CHUNK_SIZE, d=1/self.SAMPLE_RATE)[:self.CHUNK_SIZE // 2]
         self.fft_input = pyfftw.empty_aligned(self.CHUNK_SIZE, dtype='float32')
@@ -141,6 +142,7 @@ class Logic():
 
     def hue_to_rgb(self, hue):
         import colorsys
+        
         r, g, b = colorsys.hsv_to_rgb(hue / 360.0, 1.0, 1.0)
         return int(r * 255), int(g * 255), int(b * 255)
 
@@ -176,16 +178,42 @@ class Logic():
                 else:
                     self.turnoff()
 
+
+    def switch_audio_device(self, device_name):
+        exe_path = self.resource_path(r"resources\audioswitch\AudioSwitch.exe")
+        subprocess.run(
+            [exe_path, "/o", "/s", device_name]
+        )
+    
+    def lsDevices(self):
+        exe_path = r"resources\audioswitch\AudioSwitch.exe"
+        result = subprocess.run(
+            [exe_path, "/o", "/l"],
+            capture_output=True,
+            text=True
+        )
+        devices = result.stdout.strip().splitlines()
+        for device in devices:
+            if "Headphones (realme Buds Wireless 3)" in device:
+                return "Headphones (realme Buds Wireless 3)"
+        
+        return "Realtek HD Audio 2nd output (Realtek(R) Audio)"
+
+        
     def pulse_on(self):
             if self.running_rainbow or self.running_ambient:
                 return
+            
             self.running_pulse = True
             self.stream = self.start_stream()
             self.stream.start()
+            self.switch_audio_device("3")
             
     def pulse_off(self):
         self.running_pulse = False
         if hasattr(self, 'stream') and self.stream is not None:
+            x = self.lsDevices()
+            self.switch_audio_device(x)
             self.stream.stop()  
             self.stream.close()
         if self.selected_color is None:
@@ -262,26 +290,21 @@ class Logic():
         import mss
         while self.running_ambient:
             with mss.mss() as screenCapture:
-                DIMENSIONS = {'left':0, 'top':0, 'width': 640, 'height':480}
+                DIMENSIONS = {'left':0, 'top':0, 'width': 1920, 'height':1080}
                 ss = screenCapture.grab(DIMENSIONS)
                 img = Image.frombytes("RGB", ss.size, ss.rgb)
-                colors = img.quantize(colors=1, method=0, dither=0)
+                small_img = img.resize((64, 36), resample=Image.BILINEAR)
+                colors = small_img.quantize(colors=1, method=0, dither=0)
                 palette = colors.getpalette()
                 r,g,b = (palette[:3])
-                new_color = self.exp_smooth(self.previous_color, (r,g,b), 0.75) 
+                new_color = self.exp_smooth(self.previous_color, (r,g,b), 0.7) 
                 self.arduino.send_rgb_to_arduino(new_color)
                 self.previous_color = (new_color)
             time.sleep(1/self.FRAME_RATE)
 
     def exp_smooth(self, prev_color, new_color, alpha):
         return tuple(int(prev * (1 - alpha) + curr * alpha) for prev, curr in zip(prev_color, new_color))
-
-    def averageColor(self, image):
-        average_colors = np.mean(image, axis=(0,1))
-        in_rgb = average_colors[::-1]
-        return tuple(map(int, in_rgb))    
-
-
+  
     
     def turnoff(self):
         self.running_pulse = False
@@ -310,5 +333,6 @@ class Logic():
 
     def tray(self):
         from pystray import Icon, MenuItem as item
-        image = Image.open(self.resource_path("icon.ico"))
+        image = Image.open(self.resource_path(r"resources\icon.ico"))
         icon = Icon("LED Control", image, menu=(item("Restore", action=self.restore, default=True), item("Quit", self.quit)))
+        threading.Thread(target=icon.run, daemon=True).start()
